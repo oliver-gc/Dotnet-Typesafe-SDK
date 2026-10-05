@@ -5,4 +5,7 @@
   <Folder Name="/src/">
     <Project Path="src/TypesafeSdk/TypesafeSdk.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TypesafeSdk.Tests/TypesafeSdk.Tests.csproj" />
+  </Folder>
 </Solution>

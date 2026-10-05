@@ -98,7 +98,7 @@ internal static class ResponseParser
         var map = new Dictionary<string, double>();
         foreach (var entry in GetObject(parent, name, $"{path}.{name}").EnumerateObject())
         {
-            map[entry.Name] = entry.Value.TryGetDouble(out var value)
+            map[entry.Name] = TryGetNumber(entry.Value, out var value)
                 ? value
                 : throw new InvalidFieldException($"{path}.{name}.{entry.Name}");
         }
@@ -111,7 +111,7 @@ internal static class ResponseParser
         var map = new Dictionary<int, double>();
         foreach (var entry in GetObject(parent, "probabilities", $"{path}.probabilities").EnumerateObject())
         {
-            if (!int.TryParse(entry.Name, out var level) || !entry.Value.TryGetDouble(out var value))
+            if (!int.TryParse(entry.Name, out var level) || !TryGetNumber(entry.Value, out var value))
             {
                 throw new InvalidFieldException($"{path}.probabilities.{entry.Name}");
             }
@@ -150,10 +150,19 @@ internal static class ResponseParser
             : throw new InvalidFieldException(path);
 
     private static double GetDouble(JsonElement parent, string name, string path) =>
-        parent.TryGetProperty(name, out var value) && value.TryGetDouble(out var number)
+        parent.TryGetProperty(name, out var value) && TryGetNumber(value, out var number)
             ? number
             : throw new InvalidFieldException(path);
 
     private static int? GetOptionalInt(JsonElement parent, string name) =>
-        parent.TryGetProperty(name, out var value) && value.TryGetInt32(out var number) ? number : null;
+        parent.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number)
+            ? number
+            : null;
+
+    // JsonElement.TryGet* throws on non-number kinds, which would escape as InvalidOperationException.
+    private static bool TryGetNumber(JsonElement element, out double number)
+    {
+        number = 0;
+        return element.ValueKind == JsonValueKind.Number && element.TryGetDouble(out number);
+    }
 }
