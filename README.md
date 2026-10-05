@@ -1,8 +1,13 @@
-# Dotnet Typesafe SDK
+<h1 align="center">Dotnet Typesafe SDK</h1>
 
-Unofficial .NET client for the [TypeSafe](https://typesafe.ai) API.
+<p align="center">Unofficial .NET client for the <a href="https://typesafe.ai">TypeSafe</a> API.</p>
 
-View on Nuget here: [Nuget](https://www.nuget.org/packages/TypesafeSdk)
+<p align="center">
+  <a href="https://github.com/oliver-gc/Dotnet-Typesafe-SDK/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/oliver-gc/Dotnet-Typesafe-SDK/ci.yml?branch=main&logo=github&label=CI"></a>
+  <a href="https://www.nuget.org/packages/TypesafeSdk"><img alt="NuGet" src="https://img.shields.io/nuget/v/TypesafeSdk?label=nuget"></a>
+  <a href="https://www.nuget.org/packages/TypesafeSdk"><img alt="Downloads" src="https://img.shields.io/nuget/dt/TypesafeSdk?label=downloads"></a>
+  <a href="https://github.com/oliver-gc/Dotnet-Typesafe-SDK/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/oliver-gc/Dotnet-Typesafe-SDK?label=license"></a>
+</p>
 
 ## Install
 
