@@ -1,6 +1,8 @@
-# TypesafeSdk
+# Dotnet Typesafe SDK
 
 Unofficial .NET client for the [TypeSafe](https://typesafe.ai) API.
+
+View on Nuget here: [Nuget](https://www.nuget.org/packages/TypesafeSdk)
 
 ## Install
 
