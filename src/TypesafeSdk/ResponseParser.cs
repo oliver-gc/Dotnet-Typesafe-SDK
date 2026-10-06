@@ -61,6 +61,50 @@ internal static class ResponseParser
         }
     }
 
+    public static ModelListResponse ParseModels(string body, string? requestId)
+    {
+        JsonDocument document;
+        try
+        {
+            document = JsonDocument.Parse(body);
+        }
+        catch (JsonException)
+        {
+            throw new InvalidFieldException("$");
+        }
+
+        using (document)
+        {
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
+            {
+                throw new InvalidFieldException("$");
+            }
+
+            if (!root.TryGetProperty("models", out var modelsElement) || modelsElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new InvalidFieldException("models");
+            }
+
+            var models = new List<ModelInfo>();
+            var index = 0;
+            foreach (var element in modelsElement.EnumerateArray())
+            {
+                var path = $"models[{index++}]";
+                if (element.ValueKind != JsonValueKind.Object)
+                {
+                    throw new InvalidFieldException(path);
+                }
+
+                models.Add(new ModelInfo(
+                    GetString(element, "name", $"{path}.name"),
+                    GetString(element, "description", $"{path}.description"),
+                    GetString(element, "release_date", $"{path}.release_date")));
+            }
+
+            return new ModelListResponse { Models = models, RequestId = requestId, RawBody = body };
+        }
+    }
     // Returns null for answer kinds this SDK doesn't know, so new API features don't break old clients.
     private static Answer? ParseAnswer(JsonElement element, string path, Action<string>? onUnknownKind)
     {

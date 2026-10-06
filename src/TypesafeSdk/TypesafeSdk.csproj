@@ -8,9 +8,9 @@
     <AssemblyName>TypesafeSdk</AssemblyName>
 
     <PackageId>TypesafeSdk</PackageId>
-    <Version>0.1.0</Version>
+    <Version>1.0.1</Version>
     <Authors>oliver-gc</Authors>
-    <Description>Unofficial .NET client for the TypeSafe System One API.</Description>
+    <Description>.NET client for the TypeSafe System One API.</Description>
     <PackageTags>typesafe;jev;system-one;ai;sdk</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>

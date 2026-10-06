@@ -29,8 +29,8 @@ public sealed class TypeSafeClient : IDisposable
     private readonly HttpClient _http;
     private readonly bool _ownsHttp;
     private readonly string _apiKey;
-    private readonly Uri _endpoint;
-    private readonly string _endpointLabel;
+    private readonly Uri _systemOneEndpoint;
+    private readonly Uri _modelsEndpoint;
     private readonly string _model;
     private readonly RetryPolicy _retry;
     private readonly TimeSpan _timeout;
@@ -43,8 +43,8 @@ public sealed class TypeSafeClient : IDisposable
         _apiKey = ValidateApiKey(options.ApiKey ?? Environment.GetEnvironmentVariable(ApiKeyEnv));
 
         var baseUrl = options.BaseUrl ?? Environment.GetEnvironmentVariable(BaseUrlEnv) ?? DefaultBaseUrl;
-        _endpoint = new Uri($"{baseUrl.TrimEnd('/')}/v1/systemone");
-        _endpointLabel = $"POST {_endpoint.GetLeftPart(UriPartial.Path)}";
+        _systemOneEndpoint = new Uri($"{baseUrl.TrimEnd('/')}/v1/systemone");
+        _modelsEndpoint = new Uri($"{baseUrl.TrimEnd('/')}/v1/models");
 
         _model = options.Model ?? Environment.GetEnvironmentVariable(DefaultModelEnv) ?? DefaultModel;
         _retry = options.Retry ?? new RetryPolicy();
@@ -87,6 +87,30 @@ public sealed class TypeSafeClient : IDisposable
         }
 
         var payload = body.ToJsonString(JsonOptions);
+
+        return await ExecuteAsync(
+            retry,
+            token => SendOnceAsync(HttpMethod.Post, _systemOneEndpoint, payload, ResponseParser.Parse, token),
+            ct);
+    }
+
+    /// <summary>Lists the models and aliases available to the account (GET /v1/models).</summary>
+    public Task<ModelListResponse> ListModelsAsync(RetryPolicy? retry = null, CancellationToken ct = default) =>
+        ExecuteAsync(
+            retry,
+            token => SendOnceAsync(HttpMethod.Get, _modelsEndpoint, null, (body, id, _) => ResponseParser.ParseModels(body, id), token),
+            ct);
+
+    public void Dispose()
+    {
+        if (_ownsHttp)
+        {
+            _http.Dispose();
+        }
+    }
+
+    private async Task<T> ExecuteAsync<T>(RetryPolicy? retry, Func<CancellationToken, Task<T>> send, CancellationToken ct)
+    {
         var policy = retry ?? _retry;
         var started = Stopwatch.GetTimestamp();
 
@@ -94,7 +118,7 @@ public sealed class TypeSafeClient : IDisposable
         {
             try
             {
-                return await SendOnceAsync(payload, ct);
+                return await send(ct);
             }
             catch (TypeSafeException error) when (attempt < policy.MaxRetries && policy.ShouldRetry(error))
             {
@@ -112,30 +136,32 @@ public sealed class TypeSafeClient : IDisposable
         }
     }
 
-    public void Dispose()
+    private async Task<T> SendOnceAsync<T>(
+        HttpMethod method,
+        Uri endpoint,
+        string? payload,
+        Func<string, string?, Action<string>?, T> parse,
+        CancellationToken ct)
     {
-        if (_ownsHttp)
-        {
-            _http.Dispose();
-        }
-    }
+        var endpointLabel = $"{method} {endpoint.GetLeftPart(UriPartial.Path)}";
 
-    private async Task<SystemOneResponse> SendOnceAsync(string payload, CancellationToken ct)
-    {
         using var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         attemptCts.CancelAfter(_timeout);
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, _endpoint)
+        using var request = new HttpRequestMessage(method, endpoint);
+        if (payload is not null)
         {
-            Content = new StringContent(payload, Encoding.UTF8, "application/json"),
-        };
+            request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+        }
+
         request.Headers.Authorization = new("Bearer", _apiKey);
 
         if (IsEnabled(TypeSafeLogLevel.Debug))
         {
-            Log(
-                TypeSafeLogLevel.Debug,
-                $"Request: {_endpointLabel}\n{FormatHeaders(request.Headers, request.Content.Headers)}\n{payload}");
+            var requestHeaders = request.Content is null
+                ? FormatHeaders(request.Headers)
+                : FormatHeaders(request.Headers, request.Content.Headers);
+            Log(TypeSafeLogLevel.Debug, $"Request: {endpointLabel}\n{requestHeaders}\n{payload}");
         }
 
         var started = Stopwatch.GetTimestamp();
@@ -149,7 +175,7 @@ public sealed class TypeSafeClient : IDisposable
                 ? ids.FirstOrDefault()
                 : null;
 
-            var summary = $"{_endpointLabel} -> {(int)response.StatusCode} in {Stopwatch.GetElapsedTime(started).TotalMilliseconds:0}ms"
+            var summary = $"{endpointLabel} -> {(int)response.StatusCode} in {Stopwatch.GetElapsedTime(started).TotalMilliseconds:0}ms"
                 + (requestId is null ? "" : $" (request_id={requestId})");
 
             if (IsEnabled(TypeSafeLogLevel.Debug))
@@ -163,32 +189,32 @@ public sealed class TypeSafeClient : IDisposable
 
             if (!response.IsSuccessStatusCode)
             {
-                throw TypeSafeApiException.Create(response.StatusCode, responseBody, response.Headers, _endpointLabel);
+                throw TypeSafeApiException.Create(response.StatusCode, responseBody, response.Headers, endpointLabel);
             }
 
             try
             {
-                return ResponseParser.Parse(
+                return parse(
                     responseBody,
                     requestId,
                     kind => Log(TypeSafeLogLevel.Warning, $"Skipping unknown answer kind at {kind}."));
             }
             catch (InvalidFieldException invalid)
             {
-                Log(TypeSafeLogLevel.Error, $"Invalid response from {_endpointLabel}: bad or missing '{invalid.FieldPath}'.");
+                Log(TypeSafeLogLevel.Error, $"Invalid response from {endpointLabel}: bad or missing '{invalid.FieldPath}'.");
                 throw new TypeSafeResponseValidationException(
-                    response.StatusCode, responseBody, response.Headers, _endpointLabel, invalid.FieldPath);
+                    response.StatusCode, responseBody, response.Headers, endpointLabel, invalid.FieldPath);
             }
         }
         catch (OperationCanceledException ex) when (!ct.IsCancellationRequested)
         {
-            Log(TypeSafeLogLevel.Warning, $"{_endpointLabel} timed out after {_timeout.TotalSeconds:0.#}s.");
+            Log(TypeSafeLogLevel.Warning, $"{endpointLabel} timed out after {_timeout.TotalSeconds:0.#}s.");
             throw new TypeSafeTimeoutException(_timeout, ex);
         }
         catch (HttpRequestException ex)
         {
-            Log(TypeSafeLogLevel.Warning, $"{_endpointLabel} failed: {ex.Message}");
-            throw new TypeSafeConnectionException($"Could not reach {_endpointLabel}: {ex.Message}", ex);
+            Log(TypeSafeLogLevel.Warning, $"{endpointLabel} failed: {ex.Message}");
+            throw new TypeSafeConnectionException($"Could not reach {endpointLabel}: {ex.Message}", ex);
         }
     }
 

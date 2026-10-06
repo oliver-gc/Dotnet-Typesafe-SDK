@@ -93,6 +93,14 @@ internal static class Sample
         }
         """;
 
+    public const string ModelList = """
+        {
+          "models": [
+            { "name": "jev-latest", "description": "The latest Jev release.", "release_date": "2026-05-01" },
+            { "name": "jev-fast", "description": "Lower latency.", "release_date": "2026-03-12" }
+          ]
+        }
+        """;
     public const string Empty = """{"model":"jev-latest","usage":{},"answers":{}}""";
 
     public static IReadOnlyDictionary<string, Question> Questions => new Dictionary<string, Question>
