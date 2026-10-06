@@ -1,15 +1,13 @@
-<h1 align="center">Dotnet Typesafe SDK</h1>
+# Dotnet Typesafe SDK
 
-<p align="center">.NET client for the <a href="https://typesafe.ai">TypeSafe</a> API.</p>
+.NET client for the [TypeSafe](https://typesafe.ai) API.
 
-<p align="center">
-  <a href="https://github.com/oliver-gc/Dotnet-Typesafe-SDK/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/oliver-gc/Dotnet-Typesafe-SDK/ci.yml?branch=main&logo=github&label=CI"></a>
-  <a href="https://www.nuget.org/packages/TypesafeSdk"><img alt="NuGet" src="https://img.shields.io/nuget/v/TypesafeSdk?label=nuget"></a>
-  <a href="https://www.nuget.org/packages/TypesafeSdk"><img alt="Downloads" src="https://img.shields.io/nuget/dt/TypesafeSdk?label=downloads"></a>
-  <a href="https://github.com/oliver-gc/Dotnet-Typesafe-SDK/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/oliver-gc/Dotnet-Typesafe-SDK?label=license"></a>
-</p>
+[![CI](https://img.shields.io/github/actions/workflow/status/oliver-gc/Dotnet-Typesafe-SDK/ci.yml?branch=main&logo=github&label=CI)](https://github.com/oliver-gc/Dotnet-Typesafe-SDK/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/v/TypesafeSdk?label=nuget)](https://www.nuget.org/packages/TypesafeSdk)
+[![Downloads](https://img.shields.io/nuget/dt/TypesafeSdk?label=downloads)](https://www.nuget.org/packages/TypesafeSdk)
+[![License](https://img.shields.io/github/license/oliver-gc/Dotnet-Typesafe-SDK?label=license)](https://github.com/oliver-gc/Dotnet-Typesafe-SDK/blob/main/LICENSE)
 
-<p align="center">Please report all issues and feature requests on the github issue tracker <a href="https://github.com/oliver-gc/Dotnet-Typesafe-SDK/issues">here</a>.</p>
+Please report all issues and feature requests on the [GitHub issue tracker](https://github.com/oliver-gc/Dotnet-Typesafe-SDK/issues).
 
 ## Install
 

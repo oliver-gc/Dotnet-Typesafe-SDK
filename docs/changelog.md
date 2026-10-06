@@ -1,3 +1,11 @@
+# 1.0.2
+
+## Fixed
+
+- The README now uses plain Markdown instead of HTML.
+
+
+
 # 1.0.1
 
 Stable Release.
