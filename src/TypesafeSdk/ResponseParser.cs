@@ -105,6 +105,7 @@ internal static class ResponseParser
             return new ModelListResponse { Models = models, RequestId = requestId, RawBody = body };
         }
     }
+
     // Returns null for answer kinds this SDK doesn't know, so new API features don't break old clients.
     private static Answer? ParseAnswer(JsonElement element, string path, Action<string>? onUnknownKind)
     {
@@ -126,6 +127,7 @@ internal static class ResponseParser
                 GetDouble(element, "confidence", $"{path}.confidence"),
                 GetLegend(element, path),
                 GetProbabilities(element, path)),
+            "box" => new BoxAnswer(GetBox(element, path), GetOptionalDouble(element, "confidence", $"{path}.confidence")),
             _ => null,
         };
 
@@ -183,6 +185,16 @@ internal static class ResponseParser
         return map;
     }
 
+    private static BoxCoordinates GetBox(JsonElement parent, string path)
+    {
+        var box = GetObject(parent, "box", $"{path}.box");
+        return new BoxCoordinates(
+            GetDouble(box, "top", $"{path}.box.top"),
+            GetDouble(box, "bottom", $"{path}.box.bottom"),
+            GetDouble(box, "left", $"{path}.box.left"),
+            GetDouble(box, "right", $"{path}.box.right"));
+    }
+
     private static JsonElement GetObject(JsonElement parent, string name, string path) =>
         parent.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Object
             ? value
@@ -197,6 +209,17 @@ internal static class ResponseParser
         parent.TryGetProperty(name, out var value) && TryGetNumber(value, out var number)
             ? number
             : throw new InvalidFieldException(path);
+
+    // Missing or null is allowed; any other non-number is invalid.
+    private static double? GetOptionalDouble(JsonElement parent, string name, string path)
+    {
+        if (!parent.TryGetProperty(name, out var value) || value.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        return TryGetNumber(value, out var number) ? number : throw new InvalidFieldException(path);
+    }
 
     private static int? GetOptionalInt(JsonElement parent, string name) =>
         parent.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number)

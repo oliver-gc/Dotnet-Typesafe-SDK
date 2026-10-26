@@ -1,3 +1,25 @@
+# 1.1.0
+
+## Added
+
+- Images, as an experimental feature enabled with the `TypeSafe-Danger-Zone-Images: true` header. Create them with `Image` (from bytes, a file, a stream or base64), then place them in the state, question instructions or criteria, write them into text with `TextWithAssets.Create` and `TextWithAssets.Join`, or reference them by names you choose with the new `assets` argument of `SystemOneAsync`. Requests with images are sent as `multipart/form-data`.
+- `BoxQuestion`, which locates what its instructions describe in an image, with `BoxAnswer`, `BoxCoordinates` and the `SystemOneResponse.Boxes` accessor. Use it with the `jev-preview` model.
+- zstd compression of request bodies of 1 KiB or more, controlled by `TypeSafeClientOptions.Compression`.
+- `TypeSafeClientOptions.DefaultHeaders`, and a `headers` argument on `SystemOneAsync` and `ListModelsAsync` for per-call headers.
+- Every request sends `Accept`, `User-Agent`, `X-TypeSafe-SDK` and `X-TypeSafe-Runtime` headers, and retries send `X-TypeSafe-Retry-Count`. `TypeSafeClient.Version` exposes the SDK version.
+- `RetryPolicy.MaxRetryAfter` caps how long a server-requested wait is honored; longer waits use backoff. It is unset by default, so any wait is honored as before.
+- `SystemOneAsync` validates questions before sending: at least one question, nonempty choice criteria, at least two score criteria, and instructions or a described outcome for noul questions.
+
+## Changed
+
+- `Question.Instructions` is optional and nullable, and score criteria entries may be null.
+- `NaN` and infinities in request content are sent as the strings `"NaN"`, `"Infinity"` and `"-Infinity"` instead of failing to serialize.
+- Characters such as `<`, `>` and `&` are sent unescaped in request JSON.
+- Blank `TYPESAFE_*` environment variables are treated as unset.
+- The package depends on `ZstdSharp.Port`.
+
+
+
 # 1.0.2
 
 ## Fixed

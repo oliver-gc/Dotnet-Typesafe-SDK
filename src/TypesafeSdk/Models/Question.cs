@@ -6,11 +6,15 @@ using System.Text.Json.Serialization;
 [JsonDerivedType(typeof(NoulQuestion), "noul")]
 [JsonDerivedType(typeof(ChoiceQuestion), "choice")]
 [JsonDerivedType(typeof(ScoreQuestion), "score")]
+[JsonDerivedType(typeof(BoxQuestion), "box")]
 public abstract class Question
 {
-    /// <summary>A string, object, or array describing what to evaluate.</summary>
+    /// <summary>
+    /// A string, <see cref="Image"/>, <see cref="TextWithAssets"/>, object, or array describing what to evaluate.
+    /// Optional; a <see cref="NoulQuestion"/> without instructions needs a described outcome in its criteria.
+    /// </summary>
     [JsonPropertyName("instructions")]
-    public required object Instructions { get; init; }
+    public object? Instructions { get; init; }
 }
 
 /// <summary>Yes/no question; the answer is a probability of yes.</summary>
@@ -36,9 +40,12 @@ public sealed class ChoiceQuestion : Question
     public required IReadOnlyDictionary<string, object?> Criteria { get; init; }
 }
 
-/// <summary>Rates along an ordered rubric of 2 to 10 level descriptions.</summary>
+/// <summary>Rates along an ordered rubric of 2 to 10 level descriptions; null leaves a level undescribed.</summary>
 public sealed class ScoreQuestion : Question
 {
     [JsonPropertyName("criteria")]
-    public required IReadOnlyList<object> Criteria { get; init; }
+    public required IReadOnlyList<object?> Criteria { get; init; }
 }
+
+/// <summary>Locates what its instructions describe in the request's image. Use the jev-preview model.</summary>
+public sealed class BoxQuestion : Question;

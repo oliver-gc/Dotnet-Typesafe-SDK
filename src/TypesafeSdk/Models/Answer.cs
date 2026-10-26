@@ -21,3 +21,10 @@ public sealed record ScoreAnswer(
     double Confidence,
     IReadOnlyDictionary<int, JsonElement> Legend,
     IReadOnlyDictionary<int, double> Probabilities) : Answer;
+
+/// <summary>A box's edges as fractions (0 to 1) of the image's height (top, bottom) and width (left, right).</summary>
+public sealed record BoxCoordinates(double Top, double Bottom, double Left, double Right);
+
+/// <param name="Box">Where the instructions' subject is in the image.</param>
+/// <param name="Confidence">Certainty from 0 to 1, or null when the API didn't report one.</param>
+public sealed record BoxAnswer(BoxCoordinates Box, double? Confidence) : Answer;

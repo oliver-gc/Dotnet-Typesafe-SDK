@@ -200,7 +200,7 @@ public class SystemOneTests
                     Instructions = "Team?",
                     Criteria = new Dictionary<string, object?> { ["billing"] = rich, ["other"] = null },
                 },
-                ["risk"] = new ScoreQuestion { Instructions = "Risk?", Criteria = [rich] },
+                ["risk"] = new ScoreQuestion { Instructions = "Risk?", Criteria = [rich, null] },
             });
 
         var summary = """{"summary":"duplicated","examples":["charged twice"]}""";
@@ -209,7 +209,7 @@ public class SystemOneTests
             {
               "duplicate": { "type": "noul", "instructions": { "question": "Duplicate?" }, "criteria": { "true": {{summary}} } },
               "team": { "type": "choice", "instructions": "Team?", "criteria": { "billing": {{summary}}, "other": null } },
-              "risk": { "type": "score", "instructions": "Risk?", "criteria": [ {{summary}} ] }
+              "risk": { "type": "score", "instructions": "Risk?", "criteria": [ {{summary}}, null ] }
             }
             """,
             handler.Requests[0].Json["questions"]);
@@ -265,7 +265,7 @@ public class SystemOneTests
                     Instructions = instructions,
                     Criteria = new Dictionary<string, object?> { ["a"] = description, ["b"] = null },
                 },
-                ["rating"] = new ScoreQuestion { Instructions = instructions, Criteria = [description] },
+                ["rating"] = new ScoreQuestion { Instructions = instructions, Criteria = [description, "Other"] },
             });
 
         var body = handler.Requests[0].Json;
@@ -275,7 +275,7 @@ public class SystemOneTests
             {
               "yes": { "type": "noul", "instructions": ["Read the message", {"context": null}], "criteria": { "true": ["Example", null] } },
               "label": { "type": "choice", "instructions": ["Read the message", {"context": null}], "criteria": { "a": ["Example", null], "b": null } },
-              "rating": { "type": "score", "instructions": ["Read the message", {"context": null}], "criteria": [ ["Example", null] ] }
+              "rating": { "type": "score", "instructions": ["Read the message", {"context": null}], "criteria": [ ["Example", null], "Other" ] }
             }
             """,
             body["questions"]);

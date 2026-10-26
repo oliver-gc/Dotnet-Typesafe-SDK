@@ -15,10 +15,14 @@ public sealed record RetryPolicy
     /// <summary>Fraction (0 to 1) of each delay randomly subtracted.</summary>
     public double BackoffJitter { get; init; } = 0.25;
 
+    /// <summary>HTTP statuses to retry. Defaults to 429, 500, 502, 503, 504 and 529.</summary>
     public IReadOnlySet<int> HttpStatuses { get; init; } = DefaultStatuses;
 
-    /// <summary>Honor Retry-After and retry-after-ms response headers.</summary>
+    /// <summary>Honor Retry-After and retry-after-ms response headers, up to <see cref="MaxRetryAfter"/>.</summary>
     public bool RespectRetryAfter { get; init; } = true;
+
+    /// <summary>Longest server-requested wait to honor; longer waits use backoff instead. Null (the default) honors any wait.</summary>
+    public TimeSpan? MaxRetryAfter { get; init; }
 
     public bool RetryOnConnectionError { get; init; } = true;
     public bool RetryOnTimeout { get; init; } = true;
@@ -41,7 +45,7 @@ public sealed record RetryPolicy
 
     internal TimeSpan DelayFor(int attempt, TypeSafeException error)
     {
-        if (RespectRetryAfter && error is TypeSafeApiException { RetryAfter: { } retryAfter })
+        if (RespectRetryAfter && error is TypeSafeApiException { RetryAfter: { } retryAfter } && (MaxRetryAfter is null || retryAfter <= MaxRetryAfter))
         {
             return retryAfter;
         }
