@@ -8,7 +8,7 @@
     <AssemblyName>TypesafeSdk</AssemblyName>
 
     <PackageId>TypesafeSdk</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
     <Authors>oliver-gc</Authors>
     <Description>.NET client for the TypeSafe System One API.</Description>
     <PackageTags>typesafe;jev;system-one;ai;sdk</PackageTags>
@@ -30,6 +30,10 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="TypesafeSdk.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ZstdSharp.Port" Version="0.8.8" />
   </ItemGroup>
 
 </Project>

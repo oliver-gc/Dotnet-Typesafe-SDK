@@ -6,7 +6,8 @@ using TypesafeSdk.Models;
 
 namespace TypesafeSdk.Tests;
 
-internal sealed record RecordedRequest(HttpMethod Method, Uri Uri, HttpRequestHeaders Headers, string? ContentType, string Body)
+internal sealed record RecordedRequest(
+    HttpMethod Method, Uri Uri, HttpRequestHeaders Headers, string? ContentType, string Body, byte[] Bytes, HttpContentHeaders? ContentHeaders)
 {
     public JsonNode Json => JsonNode.Parse(Body)!;
 }
@@ -36,9 +37,15 @@ internal sealed class StubHandler : HttpMessageHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var body = request.Content is null ? "" : await request.Content.ReadAsStringAsync(cancellationToken);
+        var bytes = request.Content is null ? [] : await request.Content.ReadAsByteArrayAsync(cancellationToken);
         var recorded = new RecordedRequest(
-            request.Method, request.RequestUri!, request.Headers, request.Content?.Headers.ContentType?.MediaType, body);
+            request.Method,
+            request.RequestUri!,
+            request.Headers,
+            request.Content?.Headers.ContentType?.MediaType,
+            System.Text.Encoding.UTF8.GetString(bytes),
+            bytes,
+            request.Content?.Headers);
 
         lock (_requests)
         {
@@ -128,7 +135,9 @@ internal static class TestClient
         RetryPolicy? retry = null,
         TimeSpan? timeout = null,
         TypeSafeLogLevel? logLevel = null,
-        Action<TypeSafeLogLevel, string>? logger = null) =>
+        Action<TypeSafeLogLevel, string>? logger = null,
+        IReadOnlyDictionary<string, string>? defaultHeaders = null,
+        TypeSafeCompression? compression = null) =>
         new(new TypeSafeClientOptions
         {
             ApiKey = apiKey,
@@ -138,6 +147,8 @@ internal static class TestClient
             Timeout = timeout,
             LogLevel = logLevel,
             Logger = logger,
+            DefaultHeaders = defaultHeaders,
+            Compression = compression,
             HttpClient = new HttpClient(handler),
         });
 

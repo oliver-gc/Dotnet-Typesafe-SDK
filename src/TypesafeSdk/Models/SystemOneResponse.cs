@@ -19,6 +19,7 @@ public sealed class SystemOneResponse
     public IReadOnlyDictionary<string, NoulAnswer> Nouls => field ??= Filter<NoulAnswer>();
     public IReadOnlyDictionary<string, ChoiceAnswer> Choices => field ??= Filter<ChoiceAnswer>();
     public IReadOnlyDictionary<string, ScoreAnswer> Scores => field ??= Filter<ScoreAnswer>();
+    public IReadOnlyDictionary<string, BoxAnswer> Boxes => field ??= Filter<BoxAnswer>();
 
     private Dictionary<string, T> Filter<T>() where T : Answer =>
         Answers.Where(kv => kv.Value is T).ToDictionary(kv => kv.Key, kv => (T)kv.Value);
